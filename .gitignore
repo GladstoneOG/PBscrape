@@ -1,0 +1,9 @@
+# Personal local save files
+save/profile.json
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
