@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import * as def from '../assets/defineProperty-quYBDGFA-mvsqtoo8.js';
+import * as def from '../assets/defineProperty-DVBPR9km-mvznto7p.js';
 
 const BASE_URL = 'https://pokebonk.com';
 const ROOT_DIR = process.cwd();
@@ -95,16 +95,25 @@ for (const [key, val] of Object.entries(itemsJson)) {
   if (val.icon) addAsset(`assets/${val.icon}`);
   addAsset(`assets/items/${key}.png`);
 }
-for (const arr of [def.hi, def.bi, def.Wn, def.zn, def.rr, def.Un]) {
-  if (!Array.isArray(arr)) continue;
+const allDefArrays = Object.values(def).filter(Array.isArray);
+for (const arr of allDefArrays) {
   for (const it of arr) {
-    if (it.icon) addAsset(`assets/items/${it.icon}.png`);
-    if (it.key) addAsset(`assets/items/${it.key}.png`);
-    if (it.id) addAsset(`assets/items/${it.id}.png`);
+    if (!it || typeof it !== 'object') continue;
+    if (typeof it.icon === 'string' && ('stat' in it || 'max' in it)) {
+      addAsset(`assets/items/${it.icon}.png`);
+    }
+    if (typeof it.key === 'string' && ('rarity' in it || 'price' in it || 'stat' in it)) {
+      addAsset(`assets/items/${it.key}.png`);
+    }
+    if (typeof it.id === 'string' && ('daily' in it || 'max' in it)) {
+      addAsset(`assets/items/${it.id}.png`);
+    }
   }
 }
-if (Array.isArray(def.st)) {
-  for (const k of def.st) addAsset(`assets/items/${k}.png`);
+for (const arr of allDefArrays) {
+  if (arr.some(x => x === 'poke-ball')) {
+    for (const k of arr) if (typeof k === 'string') addAsset(`assets/items/${k}.png`);
+  }
 }
 [
   'comet-shard', 'magnet', 'oran-berry', 'poke-ball', 'rare-candy', 'repel',
@@ -122,24 +131,36 @@ for (const t of typesJson.types || Object.keys(typesJson.names || {})) {
   addAsset(`assets/ui/frames/type-${t}.png`);
 }
 
-// 7b. Avatars, Banners, Frames, Clan Deco/Sym from defineProperty
-if (Array.isArray(def.x)) {
-  for (const av of def.x) addAsset(`assets/ui/avatars/${av.id}.png`);
-}
-if (Array.isArray(def.y)) {
-  for (const c of def.y) {
-    const [kind, id] = (c.id || '').split(':');
-    if (kind === 'tr') addAsset(`assets/ui/avatars/${id}.png`);
-    if (kind === 'frame') addAsset(`assets/ui/frames/${id}.png`);
-    if (kind === 'bg') addAsset(`assets/ui/banners/${id}.jpg`);
-    if (kind === 'deco') addAsset(`assets/ui/clan/deco/${id}.png`);
-    if (kind === 'sym') addAsset(`assets/ui/clan/sym/${id}.png`);
+// 7b. Avatars, Banners, Frames, Clan Deco/Sym from defineProperty (shape-based discovery)
+for (const arr of allDefArrays) {
+  if (arr.some(x => x && x.id === 'boy' && x.free)) {
+    for (const av of arr) if (av?.id) addAsset(`assets/ui/avatars/${av.id}.png`);
   }
-}
-if (Array.isArray(def.v)) {
-  for (const b of def.v) {
-    const id = b.id.replace(/^bg:/, '');
-    addAsset(`assets/ui/banners/${id}.jpg`);
+  for (const item of arr) {
+    if (!item || typeof item !== 'object') continue;
+    if (typeof item.id === 'string' && item.id.includes(':')) {
+      const [kind, id] = item.id.split(':');
+      if (kind === 'tr') addAsset(`assets/ui/avatars/${id}.png`);
+      if (kind === 'frame') addAsset(`assets/ui/frames/${id}.png`);
+      if (kind === 'bg') addAsset(`assets/ui/banners/${id}.jpg`);
+      if (kind === 'deco') addAsset(`assets/ui/clan/deco/${id}.png`);
+      if (kind === 'sym') addAsset(`assets/ui/clan/sym/${id}.png`);
+    }
+    if (typeof item.style === 'string' && Array.isArray(item.pal)) {
+      addAsset(`assets/ui/frames/look-${item.style}.png`);
+      addAsset(`assets/ui/banners/look-${item.style}.jpg`);
+    }
+    if (typeof item.id === 'string' && typeof item.from === 'number' && typeof item.max === 'number') {
+      addAsset(`assets/ui/frames/${item.id}.png`);
+      addAsset(`assets/ui/ranks/${item.id}.png`);
+    }
+    if (typeof item.id === 'string' && item.starter && Array.isArray(item.prizes)) {
+      addAsset(`assets/ui/treasures/bg-${item.id}.png`);
+    }
+    if (typeof item.id === 'string' && item.icon && ['bronze', 'silver', 'gold', 'diamond', 'master'].includes(item.id)) {
+      addAsset(`assets/ui/ranks/${item.id}.png`);
+      addAsset(`assets/ui/icons/${item.icon || item.id}.png`);
+    }
   }
 }
 [
@@ -149,52 +170,16 @@ if (Array.isArray(def.v)) {
   addAsset(`assets/ui/frames/${f}.png`);
   addAsset(`assets/ui/banners/${f}.jpg`);
 });
-if (Array.isArray(def.Yn)) {
-  for (const r of def.Yn) {
-    addAsset(`assets/ui/frames/${r.id}.png`);
-    addAsset(`assets/ui/ranks/${r.id}.png`);
-  }
-}
-if (Array.isArray(def.Q)) {
-  for (const r of def.Q) addAsset(`assets/ui/frames/${r.id.replace(/^frame:/, '')}.png`);
-}
-if (Array.isArray(def.tn)) {
-  const styles = new Set(def.tn.map(x => x.style).filter(Boolean));
-  for (const s of styles) {
-    addAsset(`assets/ui/frames/look-${s}.png`);
-    addAsset(`assets/ui/banners/look-${s}.jpg`);
-  }
-}
-if (Array.isArray(def.et)) {
-  for (const d of def.et) addAsset(`assets/ui/clan/deco/${d.id}.png`);
-}
-if (Array.isArray(def.it)) {
-  for (const s of def.it) addAsset(`assets/ui/clan/sym/${s.id}.png`);
-}
-if (Array.isArray(def.tt)) {
-  for (const s of def.tt) {
-    const [k, id] = s.id.split(':');
-    if (k === 'sym') addAsset(`assets/ui/clan/sym/${id}.png`);
-    if (k === 'deco') addAsset(`assets/ui/clan/deco/${id}.png`);
-  }
-}
 ['pioneer', 'candelabra'].forEach(d => addAsset(`assets/ui/clan/deco/${d}.png`));
 ['sprout', 'cubone', 'egg'].forEach(s => addAsset(`assets/ui/clan/sym/${s}.png`));
 
-// 7c. Events, Ranks, Treasures, Pings, Icons
+// 7c. Events, Ranks, Treasures, Pings, Desktop Preview, Icons
 ['tower.jpg', 'tower-banner.jpg', 'tower-card.jpg'].forEach(f => addAsset(`assets/ui/events/${f}`));
-if (Array.isArray(def.Kn)) {
-  for (const r of def.Kn) {
-    addAsset(`assets/ui/ranks/${r.id}.png`);
-    addAsset(`assets/ui/icons/${r.icon || r.id}.png`);
-  }
-}
-if (Array.isArray(def.Kt)) {
-  for (const t of def.Kt) addAsset(`assets/ui/treasures/bg-${t.id}.png`);
-}
 ['here', 'boss', 'item', 'portal', 'thanks', 'wait', 'danger', 'help'].forEach(p => addAsset(`assets/ui/pings/${p}.png`));
+['forest', 'coast', 'glacier', 'desert', 'horde'].forEach(d => addAsset(`assets/ui/desktop/${d}.webp`));
+addAsset('assets/ui/desktop/app.png');
 
-const uiIcons = [
+const uiIcons = new Set([
   'aim', 'banish', 'blessing', 'bonk', 'bonk-big', 'brush', 'bug', 'champion', 'chat',
   'check', 'clan', 'coin', 'crown', 'dash', 'egg', 'friend-add', 'friends', 'fullscreen',
   'fullscreen-exit', 'globe', 'gold', 'silver', 'bronze', 'diamond', 'master', 'idea',
@@ -211,7 +196,16 @@ const uiIcons = [
   'st-stun', 'st-confuse', 'st-charm', 'st-root', 'st-pull', 'st-wet',
   'st-curse', 'st-healblock', 'st-shield',
   'stardust', 'streak', 'target', 'torre', 'treasure', 'unlock', 'vela'
-];
+]);
+const mainBundle = fs.readdirSync('assets').find(f => f.startsWith('main-') && f.endsWith('.js'));
+if (mainBundle) {
+  const mainSrc = fs.readFileSync(path.join('assets', mainBundle), 'utf8');
+  const iconRe = /\bZ\([`'"]([a-z0-9-]+)[`'"]\s*[,)]/g;
+  let im;
+  while ((im = iconRe.exec(mainSrc)) !== null) {
+    uiIcons.add(im[1]);
+  }
+}
 for (const ic of uiIcons) addAsset(`assets/ui/icons/${ic}.png`);
 
 // 8. Pokemon Assets

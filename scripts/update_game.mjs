@@ -90,7 +90,7 @@ if (!entryBootJs) {
 
 // 4. Parse boot loader JS for __vite__mapDeps and dynamic language imports
 const bootCode = fs.readFileSync(path.join(ROOT_DIR, entryBootJs), 'utf8');
-const depRe = /["']\.\/([^"']+\.(?:js|css))["']/g;
+const depRe = /["'`]\.\/([^"'`]+\.(?:js|css))["'`]/g;
 let definePropJs = null;
 let mainGameJs = null;
 
@@ -200,5 +200,12 @@ console.log('\nRunning asset downloader for models, biomes, sprites, audio & UI.
 const dlArgs = [path.join(ROOT_DIR, 'scripts', 'download_assets.mjs')];
 if (allDex) dlArgs.push('--all-dex');
 execFileSync(process.execPath, dlArgs, { stdio: 'inherit' });
+
+// 10. Apply GPU Performance & Older-Hardware Compatibility Patch to the updated bundle
+const perfPatchScript = path.join(ROOT_DIR, 'scripts', 'patch_performance.mjs');
+if (fs.existsSync(perfPatchScript)) {
+  console.log('\nApplying GPU Performance Patch...');
+  execFileSync(process.execPath, [perfPatchScript], { stdio: 'inherit' });
+}
 
 console.log(`\nUpdate complete! Local copy is now at v${liveVersion.version} (build ${liveVersion.build}).`);
